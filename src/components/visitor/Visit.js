@@ -1,18 +1,23 @@
-import TextField from '@mui/material/TextField';
-import Autocomplete from '@mui/material/Autocomplete';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
+import { TextField, Button, Grid, Typography, Container, Autocomplete } from '@mui/material';
+import { Formik, Form, Field } from 'formik';
 
 import { useEffect, useState } from 'react';
 import './Visit.css';
+import SuccessSnackbar from '../snackbars/SuccessSnackbar';
 
-const Visit = (props) => {
-  
+const Visit = () => {
+
   const [members, setMembers] = useState([]);
   const [selectedMember, setSelectedMember] = useState(0);
-  const [visitor, setVisitor] = useState('');
+  const [severity, setSeverity] = useState('info');
+  const [message, setMessage] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const initialValues = {
+    cpf: selectedMember,
+    visitorname: ''
+  };
+  
 
   const getMembersUrl = 'http://localhost:3001/members';
   const addVisitUrl = 'http://localhost:3001/addvisit';
@@ -21,7 +26,6 @@ const Visit = (props) => {
     fetch(getMembersUrl)
       .then((res) => res.json())
       .then((res) => {
-        console.log(res);
         setMembers(res);
       });
   };
@@ -31,30 +35,36 @@ const Visit = (props) => {
     members.forEach(member => {
       memberArray.push({ label: member.name, cpf: member.cpf });  
     });
-    console.log('Members Names: ', memberArray);
     return memberArray;
   }
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
+  const handleSubmit = async (values) => {
     const visitDetails = {
-      visitor: visitor,
+      visitor: values.visitorname,
       cpf: selectedMember,
       requestedOn: new Date(),
       status: 'PENDING',
       approvedOn: ''
     };
 
-    await fetch(addVisitUrl, {
+    fetch(addVisitUrl, {
       method: 'POST',
-      body: JSON.stringify(visitDetails),
       headers: {
-        'Content-type': 'application/json; charset=UTF-8',
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify(visitDetails),
     })
-    .then((response) => response.json())
-    .then((json) => console.log('The object written to the visits collection: ', json));
+    .then(res => res.json())
+    .then(res => {
+      console.log(res);
+      setMessage(res.message);
+      setSeverity(res.severity);
+      setIsOpen(true);
+    });
+  };
+
+  const callback = () => {
+    setIsOpen(false);
   };
 
   useEffect(() => {
@@ -62,32 +72,56 @@ const Visit = (props) => {
   }, []);
 
   return (
-    <div className='visit'>
-      <form onSubmit={handleSubmit}>
-        <Card sx={{ minWidth: 600 }} style={{margin: 'auto'}}>
-          <CardContent style={{ justifyContent:'center' }}>
-            <Autocomplete
-              disablePortal
-              id="combo-box-demo"
-              options={getMembersNames()}
-              sx={{ width: 300 }}
-              onChange={(event, newValue) => {
-                event.preventDefault();
-                setSelectedMember(newValue.cpf);
-              }}
-              isOptionEqualToValue={(option, value) =>
-                option.cpf === value.cpf
-              }
-              renderInput={(params) => <TextField {...params} label="Select EDD Member" />}
-            />
-            <TextField id="visitorname-basic" label="Visitor Name" variant="standard" onChange={e => setVisitor(e.target.value)} />
-          </CardContent>
-          <CardActions>
-            <Button size="small" type='submit'>Submit for Approval</Button>
-          </CardActions>
-        </Card>
-      </form>
-    </div>
+    <Container maxWidth="xs">
+      <Typography variant="h4" align="center" gutterBottom>
+        Visitor Request Approval
+      </Typography>
+      <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+        {({ isSubmitting }) => (
+          <Form>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Autocomplete
+                  disablePortal
+                  id="combo-box-demo"
+                  options={getMembersNames()}
+                  sx={{ width: 300 }}
+                  onChange={(event, newValue) => {
+                    event.preventDefault();
+                    setSelectedMember(newValue.cpf);
+                  }}
+                  isOptionEqualToValue={(option, value) =>
+                    option.cpf === value.cpf
+                  }
+                  renderInput={(params) => <TextField {...params} label="Select EDD Member" />}
+                  fullWidth
+                />
+              </Grid>  
+              <Grid item xs={12}>
+                <Field
+                  as={TextField}
+                  name="visitorname"
+                  label="Visitor Name"
+                  variant="outlined"
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              fullWidth
+              disabled={isSubmitting}
+              sx={{ marginTop: 2 }}
+            >
+              Submit For Approval
+            </Button>
+          </Form>
+        )}
+      </Formik>
+      <SuccessSnackbar message={message} isOpen={isOpen} onClose={callback} severity={severity} />
+    </Container>
   );
 };
 

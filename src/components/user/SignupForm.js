@@ -5,6 +5,7 @@ import { Formik, Form, Field } from 'formik';
 import SuccessSnackbar from '../snackbars/SuccessSnackbar';
 
 const SignupForm = () => {
+  const [severity, setSeverity] = useState('info');
   const [message, setMessage] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
@@ -30,7 +31,8 @@ const SignupForm = () => {
     .then(res => res.json())
     .then(res => {
       console.log(res);
-      setMessage('User registered successfully!');
+      setMessage(res.message);
+      setSeverity(res.severity);
       setIsOpen(true);
     });
   };
@@ -100,7 +102,7 @@ const SignupForm = () => {
           </Form>
         )}
       </Formik>
-      <SuccessSnackbar message={message} isOpen={isOpen} onClose={callback} />
+      <SuccessSnackbar message={message} isOpen={isOpen} onClose={callback} severity={severity} />
     </Container>
   );
 };

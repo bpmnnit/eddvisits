@@ -6,13 +6,13 @@ const Alert = forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-const SuccessSnackbar = ({message, isOpen, onClose}) => {
+const SuccessSnackbar = ({message, isOpen, onClose, severity}) => {
   return (
     <Snackbar key={Math.random()} open={isOpen} autoHideDuration={3000} onClose={onClose} anchorOrigin={{
       vertical: 'bottom',
       horizontal: 'center'
     }}>
-      <Alert onClose={onClose} severity="success" sx={{ width: '100%' }}>
+      <Alert onClose={onClose} severity={severity} sx={{ width: '100%' }}>
         {message}
       </Alert>
     </Snackbar>
