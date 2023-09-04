@@ -9,12 +9,14 @@ const Visit = () => {
 
   const [members, setMembers] = useState([]);
   const [selectedMember, setSelectedMember] = useState(0);
+  const [selectedMemberName, setSelectedMemberName] = useState('');
   const [severity, setSeverity] = useState('info');
   const [message, setMessage] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   
   const initialValues = {
     cpf: selectedMember,
+    name: '',
     visitorname: ''
   };
   
@@ -33,7 +35,7 @@ const Visit = () => {
   const getMembersNames = () => {
     const memberArray = [];
     members.forEach(member => {
-      memberArray.push({ label: member.name, cpf: member.cpf });  
+      memberArray.push({ label: member.name, cpf: member.cpf, name: member.name });  
     });
     return memberArray;
   }
@@ -42,6 +44,7 @@ const Visit = () => {
     const visitDetails = {
       visitor: values.visitorname,
       cpf: selectedMember,
+      name: selectedMemberName,
       requestedOn: new Date(),
       status: 'PENDING',
       approvedOn: ''
@@ -89,6 +92,7 @@ const Visit = () => {
                   onChange={(event, newValue) => {
                     event.preventDefault();
                     setSelectedMember(newValue.cpf);
+                    setSelectedMemberName(newValue.name);
                   }}
                   isOptionEqualToValue={(option, value) =>
                     option.cpf === value.cpf
